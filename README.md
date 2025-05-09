@@ -14,7 +14,7 @@ bilibili-api in golang, bro just wrapped everything.
 
 还可以注册轮询视频AI总结完成的回调 [`RegisterVideoConclusion`](polling.go)
 
-还能监听[直播间信息流](liveMsgStream.go), 主播`开播`/`下播`/`吃红SC`/`被切断`一瞬间就来通知, 快到超速了!
+还能监听[直播间信息流](liveMsgStream.go), 主播`开播`/`下播`/`吃红SC`/`被切断`一瞬间就来通知, 快到超速了! ([DEMO: examples\liveMsgStream](examples\liveMsgStream\liveMsgStream.go))
 
 另外就是用 `text/template` 实现了为[任意结构体](types.go)的灵活[格式化](template.go), 直接丢在 [`template/type`](template/type) 里就完事了, 还做了懒加载, 太好用了, 我管你慢不慢的
 
