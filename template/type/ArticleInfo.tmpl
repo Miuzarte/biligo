@@ -1,0 +1,6 @@
+{{define "ArticleInfo"}}{{range .ImageUrls}}[CQ:image,file={{.}}]{{end}}
+{{.Title}}
+作者：{{.AuthorName}}{{if .Location}} | IP属地：{{.Location}}{{end}}
+{{FmtNum .Stats.View}}阅读  {{FmtNum .Stats.Reply}}评论  {{FmtNum .Stats.Share}}分享
+{{FmtNum .Stats.Like}}点赞  {{FmtNum .Stats.Coin}}投币  {{FmtNum .Stats.Favorite}}收藏{{if .Cvid}}
+bilibili.com/read/cv{{.Cvid}}{{end}}{{end}}

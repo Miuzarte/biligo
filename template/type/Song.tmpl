@@ -1,0 +1,8 @@
+{{define "Song"}}[CQ:image,file={{.Info.Cover}}]
+{{.Info.Title}}
+时长：{{FmtDur .Info.Duration}}{{if .Member.Ok}}
+{{.Member.String}}{{end}}{{if .Tag.Ok}}
+{{.Tag.String}}{{end}}
+{{FmtNum .Info.Statistic.Play}}播放  {{FmtNum .Info.Statistic.Collect}}收藏
+{{FmtNum .Info.Statistic.Comment}}评论  {{FmtNum .Info.Statistic.Share}}分享
+bilibili.com/audio/au{{.Info.Id}}{{end}}

@@ -1,0 +1,8 @@
+{{define "VideoInfo"}}[CQ:image,file={{.Pic}}]
+{{.Title}}
+UP: {{.Owner.Name}}{{if .ArgueInfo.ArgueMsg}}
+{{.ArgueInfo.ArgueMsg}}{{end}}{{if .Online.Ok}}
+{{.Online.Total}}人正在看{{end}}
+{{FmtNum .Stat.View}}播放  {{FmtNum .Stat.Danmaku}}弹幕  {{FmtNum .Stat.Reply}}评论
+{{FmtNum .Stat.Like}}点赞  {{FmtNum .Stat.Coin}}投币  {{FmtNum .Stat.Favorite}}收藏
+bilibili.com/video/av{{.Aid}}{{end}}

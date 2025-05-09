@@ -1,0 +1,3 @@
+{{define "VideoConclusion"}}{{.ModelResult.Summary}}{{range .ModelResult.Outline}}
+● {{TrimSpace .Title}}{{range .PartOutline}}
+[{{FmtDur .Timestamp}}] {{TrimSpace .Content}}{{end}}{{end}}{{end}}

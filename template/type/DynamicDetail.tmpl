@@ -1,0 +1,20 @@
+{{define "DynamicDetail"}}t.bilibili.com/{{.IdStr}}
+{{with .Modules.Author}}{{.Name}}{{if .Label}} [{{.Label}}]{{end}}{{if .IconBadge.Text}} [{{.IconBadge.Text}}]{{end}}：{{.PubAction}}{{end}}{{with .Modules.Dynamic.Topic}}{{if .}}
+#️⃣{{.Name}}#️⃣{{end}}{{end}}{{with .Modules.Dynamic.Desc}}{{if .}}
+{{.Text}}{{end}}{{end}}{{with .Modules.Dynamic.Major}}{{if .}}{{if .None}}
+{{.None.Tips}}{{end}}{{if .Blocked}}
+{{.Blocked.HintMessage}}{{end}}{{if .Draw}}
+{{.Draw.DoTemplate}}{{end}}{{if .Archive}}
+{{.Archive.DoTemplate}}{{end}}{{if .Article}}
+{{.Article.DoTemplate}}{{end}}{{if .Music}}
+{{.Music.DoTemplate}}{{end}}{{if .Live}}
+{{.Live.DoTemplate}}{{end}}{{if .LiveRcmd}}
+{{.LiveRcmd.DoTemplate}}{{end}}{{if .Pgc}}
+{{.Pgc.DoTemplate}}{{end}}{{end}}{{end}}{{with .Modules.Dynamic.Additional}}{{if .}}
+{{if .Reserve}}
+{{.Reserve.DoTemplate}}{{end}}{{if .Vote}}
+{{.Vote.DoTemplate}}{{end}}{{if .Ugc}}
+{{.Ugc.DoTemplate}}{{end}}{{if .Common}}
+{{.Common.DoTemplate}}{{end}}{{end}}{{end}}{{if .Orig}}
+
+转：{{.Orig.DoTemplate}}{{end}}{{end}}

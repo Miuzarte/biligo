@@ -1,0 +1,5 @@
+{{define "LiveStatus"}}[CQ:image,file={{.CoverFromUser}}]{{if .Keyframe}}[CQ:image,file={{.Keyframe}}]{{end}}
+{{.Uname}}的直播间（{{LST .LiveStatus}}）
+{{.Title}}
+{{.AreaV2ParentName}} - {{.AreaV2Name}}
+live.bilibili.com/{{.RoomId}}{{end}}

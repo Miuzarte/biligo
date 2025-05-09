@@ -1,0 +1,4 @@
+{{define "SpaceCard"}}[CQ:image,file={{.Card.Face}}]
+{{.Card.Name}}（LV{{.Card.LevelInfo.CurrentLevel}}）{{if .Card.Sign}}
+签名：{{.Card.Sign}}{{end}}
+space.bilibili.com/{{.Card.Mid}}{{end}}

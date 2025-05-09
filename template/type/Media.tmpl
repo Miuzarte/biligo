@@ -1,0 +1,7 @@
+{{define "Media"}}[CQ:image,file={{.Cover}}]
+{{.Title}}
+{{Join .Styles "/"}} | {{.Rating.Score}}分 | {{.Rating.Count}}人评
+{{FmtNum .Stat.Views}}播放  {{FmtNum .Stat.Likes}}点赞
+{{FmtNum .Stat.Danmakus}}弹幕  {{FmtNum .Stat.Reply}}评论
+{{FmtNum .Stat.Coins}}投币  {{FmtNum .Stat.Favorites}}追番
+bilibili.com/bangumi/media/md{{.MediaId}}{{end}}

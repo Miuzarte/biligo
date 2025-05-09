@@ -1,0 +1,4 @@
+{{define "MediaBase"}}{{with .Media}}[CQ:image,file={{.Cover}}]
+{{.Title}}
+{{.Rating.Score}}分 | {{.Rating.Count}}人评
+bilibili.com/bangumi/media/md{{.MediaId}}{{end}}{{end}}

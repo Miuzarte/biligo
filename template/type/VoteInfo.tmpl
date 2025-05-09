@@ -1,0 +1,7 @@
+{{define "VoteInfo"}}{{.Name}}发起的投票：
+{{.Title}}{{if .Desc}}
+{{.Desc}}{{end}}
+结束于 {{FmtTime .EndTime}}
+最多选{{.ChoiceCnt}}项  {{.JoinNum}}人参与{{range .Options}}
+{{.OptIdx}}. {{.OptDesc}}{{if .Cnt}}  | {{.Cnt}}人选择({{Percent .Cnt $.JoinNum}}){{end}}{{if .ImgUrl}}
+[CQ:image,file={{.ImgUrl}}]{{end}}{{end}}{{end}}

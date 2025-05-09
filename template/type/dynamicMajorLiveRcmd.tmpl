@@ -1,0 +1,6 @@
+{{define "dynamicMajorLiveRcmd"}}{{if .Unmarshal}}{{with .Unmarshaled.LivePlayInfo}}[CQ:image,file={{.Cover}}]
+{{.Title}}（{{LST .LiveStatus}}）
+{{.ParentAreaName}} - {{.AreaName}}
+{{.WatchedShow.TextLarge}}
+开播于：{{FmtTime .LiveStartTime}}
+live.bilibili.com/{{.RoomId}}{{end}}{{else}}{{.UnmarshalErr.Error}}{{end}}{{end}}

@@ -1,0 +1,4 @@
+{{define "dynamicAddiReserve"}}{{.Title}}
+{{.Desc1.Text}}  {{.Desc2.Text}}{{if .Desc3.Text}}
+{{.Desc3.Text}}{{end}}{{if .JumpUrl}}
+{{TrimPrefix .JumpUrl "//www."}}{{end}}{{end}}
