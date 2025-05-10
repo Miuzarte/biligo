@@ -1,4 +1,5 @@
-{{define "SpaceCard"}}[CQ:image,file={{.Card.Face}}]
-{{.Card.Name}}（LV{{.Card.LevelInfo.CurrentLevel}}）{{if .Card.Sign}}
-签名：{{.Card.Sign}}{{end}}
-space.bilibili.com/{{.Card.Mid}}{{end}}
+{{define "SpaceCard"}}{{with .Card}}[CQ:image,file={{.Face}}]
+{{.Name}}（LV{{.LevelInfo.CurrentLevel}}）
+{{FmtNum .Fans}} 粉丝  {{FmtNum .Attention}} 关注{{if .Sign}}
+签名：{{.Sign}}{{end}}
+space.bilibili.com/{{.Mid}}{{end}}{{end}}
