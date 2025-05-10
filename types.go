@@ -758,7 +758,7 @@ type dynamicBasic struct {
 	CommentIdStr string `json:"comment_id_str" mapstructure:"comment_id_str"`
 	CommentType  int    `json:"comment_type" mapstructure:"comment_type"`
 	IsOnlyFans   bool   `json:"is_only_fans" mapstructure:"is_only_fans"`
-	// LikeIcon     struct{} `json:"like_icon" mapstructure:"like_icon"`
+	// LikeIcon struct{} `json:"like_icon" mapstructure:"like_icon"`
 	RidStr string `json:"rid_str" mapstructure:"rid_str"` // == CommentIdStr
 }
 
@@ -1020,7 +1020,8 @@ type (
 	}
 )
 
-// lazyload 导致必须要显式调用 [DoTemplate]
+// lazyload 导致必须要显式调用 [DoTemplate],
+// 不能直接在模板中写{{template "dynamicMajorDraw" .Draw}},
 
 func (dmd *dynamicMajorDraw) DoTemplate() string {
 	return DoTemplate(dmd)
