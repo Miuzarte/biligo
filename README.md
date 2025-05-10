@@ -28,5 +28,6 @@ bilibili-api in golang, bro just wrapped everything.
 另外就是用 `text/template` 实现了为[任意结构体](types.go)的灵活[格式化](template.go),
 直接丢在 [`template/type`](template/type) 里就完事了,
 还做了懒加载, 太好用了, 我管你慢不慢的
+(自定义模板见 [demo/customTemplate](https://github.com/Miuzarte/biligoDemo/blob/main/customTemplate/customTemplate.go))
 
 just `go get github.com/Miuzarte/biligo`

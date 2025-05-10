@@ -57,7 +57,7 @@ func FormatSearch(results []gjson.Result) []Templatable {
 
 		case SEARCH_TYPE_BILI_USER:
 			s, err := FetchSpaceCard(r.Get("mid").String())
-			if err != nil {
+			if err == nil {
 				ts = append(ts, &s)
 			} else {
 				ts = append(ts, wrapErr(errSearchFailedSpace, err).(*Error))

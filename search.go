@@ -5,7 +5,7 @@ import (
 )
 
 // SearchFormatAuto 在 searchType 为空字符串时使用综合搜索,
-// 函数的返回结果可被断言为: [*VideoInfo], [*Media], [*LiveStatusUid], [*ArticleInfo], [*SpaceCard]
+// 返回值可被断言为: [*VideoInfo], [*Media], [*LiveStatus], [*ArticleInfo], [*SpaceCard], [*Error]
 func SearchFormatAuto(searchType SearchClass, keyword string) ([]Templatable, error) {
 	if searchType == "" {
 		return SearchFormatAll(keyword)
