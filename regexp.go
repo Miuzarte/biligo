@@ -3,6 +3,7 @@ package biligo
 import (
 	"regexp"
 	"strings"
+	"sync"
 )
 
 var (
@@ -99,11 +100,38 @@ func (r ParseResult) FetchFormat() (string, error) {
 		return space.DoTemplate(), nil
 
 	case LINK_TYPE_DYNAMIC:
-		dynamic, err := FetchDynamicDetail(r.Content)
-		if err != nil {
-			return "", err
+		// 同时请求 desktop api 补充正文
+		var wg sync.WaitGroup
+		var dd DynamicDetail
+		var ddd DynamicDetailDesktop
+		var err1, err2 error
+		wg.Go(func() {
+			dd, err1 = FetchDynamicDetail(r.Content)
+		})
+		wg.Go(func() {
+			ddd, err2 = FetchDynamicDetailDesktop(r.Content)
+		})
+		wg.Wait()
+		if err1 != nil {
+			return "", err1
 		}
-		return dynamic.DoTemplate(), nil
+		if err2 != nil {
+			return "", err2
+		}
+
+		if dd.Modules.Dynamic.Desc == nil {
+			dd.Modules.Dynamic.Desc = ddd.Item.Modules.GetDesc()
+		}
+		if dd.Orig != nil {
+			if dd.Orig.Modules.Dynamic.Desc == nil {
+				forward := ddd.Item.Modules.GetDyn()
+				if forward != nil && forward.DynForward != nil {
+					dd.Orig.Modules.Dynamic.Desc = forward.DynForward.Item.Modules.GetDesc()
+				}
+			}
+		}
+
+		return dd.DoTemplate(), nil
 
 	default:
 		return "<unknonw type of link>", nil

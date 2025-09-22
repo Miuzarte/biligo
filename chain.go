@@ -146,6 +146,11 @@ func (c *Chain) ToDynamicDetail() (dd DynamicDetail, err error) {
 	return
 }
 
+func (c *Chain) ToDynamicDetailDesktop() (dd DynamicDetailDesktop, err error) {
+	err = c.ParseTo(&dd, "data")
+	return
+}
+
 func (c *Chain) ToVoteInfo() (vi VoteInfo, err error) {
 	err = c.ParseTo(&vi, "data.vote_info")
 	return
@@ -158,11 +163,6 @@ func (c *Chain) ToQrcodeGenerate() (qg QrcodeGenerate, err error) {
 
 func (c *Chain) ToQrcodePoll() (qp QrcodePoll, err error) {
 	err = c.ParseTo(&qp, "data")
-	return
-}
-
-func (c *Chain) ToNav() (n Nav, err error) {
-	err = c.ParseTo(&n, "data")
 	return
 }
 
@@ -183,5 +183,15 @@ func (c *Chain) ToDynamicAllUpdate() (dau DynamicAllUpdate, err error) {
 
 func (c *Chain) ToLiveDanmuInfo() (ldi LiveDanmuInfo, err error) {
 	err = c.ParseTo(&ldi, "data")
+	return
+}
+
+func (c *Chain) ToNav() (n Nav, err error) {
+	err = c.ParseTo(&n, "data")
+	return
+}
+
+func (c *Chain) ToBuvid34() (b Buvid34, err error) {
+	err = c.ParseTo(&b, "data")
 	return
 }

@@ -8,7 +8,7 @@ import (
 func TestGetUid(t *testing.T) {
 	testingLoadIdentity(t)
 
-	u, err := getUid()
+	u, err := getSpaceUid()
 	if err != nil {
 		t.Fatal(err)
 	}

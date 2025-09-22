@@ -86,6 +86,11 @@ func ReqDynamicDetail(id string) *Request {
 		WithQuery("id", id)
 }
 
+func ReqDynamicDetailDesktop(id string) *Request {
+	return NewGet(URL_DYNAMIC_DETAIL_DESKTOP).
+		WithQuery("id", id)
+}
+
 func ReqVoteInfo(voteId string) *Request {
 	return NewGet(URL_VOTE_INFO).
 		WithQuery("vote_id", voteId)
@@ -102,7 +107,7 @@ func ReqSearchType(searchType SearchClass, keyword string) *Request {
 }
 
 func ReqLiveDanmuInfo(roomId string) *Request {
-	return NewGet(URL_LIVE_DANMU_INFO).
+	return NewGet(URL_LIVE_DANMU_INFO).WbiSign().
 		WithQuery("id", roomId)
 }
 
@@ -127,4 +132,8 @@ func ReqLoginQrcodePoll(qrcodeKey string) *Request {
 
 func ReqNav() *Request {
 	return NewGet(URL_NAV)
+}
+
+func ReqBuvid34() *Request {
+	return NewGet(URL_BUVID34)
 }

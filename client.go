@@ -22,7 +22,7 @@ var DefaultHeaders = map[string]string{
 	"Origin":                    "https://www.bilibili.com",
 	"Referer":                   "https://www.bilibili.com/",
 	"Priority":                  "u=1, i",
-	"Sec-Ch-Ua":                 "\"Chromium\";v=\"136\", \"Microsoft Edge\";v=\"136\", \"Not.A/Brand\";v=\"99\"",
+	"Sec-Ch-Ua":                 "\"Chromium\";v=\"140\", \"Microsoft Edge\";v=\"140\", \"Not.A/Brand\";v=\"99\"",
 	"Sec-Ch-Ua-Mobile":          "?0",
 	"Sec-Ch-Ua-Platform":        "\"Windows\"",
 	"Sec-Fetch-Dest":            "document",
@@ -30,7 +30,7 @@ var DefaultHeaders = map[string]string{
 	"Sec-Fetch-Site":            "same-site",
 	"Sec-Fetch-User":            "?1",
 	"Upgrade-Insecure-Requests": "1",
-	"User-Agent":                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0",
+	"User-Agent":                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0",
 }
 
 var httpClient = newClient()
@@ -83,7 +83,7 @@ type cookieManager struct {
 	guestFetching sync.Mutex
 }
 
-func (c *cookieManager) getGuestCookie() error {
+func (c *cookieManager) fetchGuestCookie() error {
 	// defer c.guestFetching.Store(false)
 	defer c.guestFetching.Unlock()
 
@@ -100,7 +100,7 @@ func (c *cookieManager) getGuestCookie() error {
 	}
 	defer resp.Body.Close()
 
-	err = c.store(resp.Header.Get("Set-Cookie"))
+	err = c.set(joinCookie(resp.Header["Set-Cookie"]))
 	if err != nil {
 		return err
 	}
@@ -108,7 +108,7 @@ func (c *cookieManager) getGuestCookie() error {
 	return nil
 }
 
-func (c *cookieManager) store(setCookie string) (err error) {
+func (c *cookieManager) set(setCookie string) (err error) {
 	cookie, err := http.ParseSetCookie(setCookie)
 	if err != nil {
 		return err
@@ -126,7 +126,7 @@ func (c *cookieManager) Cookies(u *netUrl.URL) []*http.Cookie {
 		// 没有 cookie 时尝试获取访客 cookie
 		// if c.guestFetching.CompareAndSwap(false, true) {
 		if c.guestFetching.TryLock() {
-			if c.getGuestCookie() != nil {
+			if c.fetchGuestCookie() != nil {
 				return nil
 			}
 		}
@@ -260,7 +260,7 @@ func (req *Request) WithQuerys(kv ...string) *Request {
 		return req
 	}
 	if len(kv)%2 != 0 {
-		panic(fmt.Sprintf("request.WithQuerys: odd kv: (%d)%v", len(kv), kv))
+		panic(fmt.Errorf("request.WithQuerys: odd kv: (%d)%v", len(kv), kv))
 	}
 	for i := 0; i < len(kv); i += 2 {
 		req.querys.Add(kv[i], kv[i+1])
@@ -270,7 +270,7 @@ func (req *Request) WithQuerys(kv ...string) *Request {
 
 func (req *Request) WithQueryList(k string, v ...string) *Request {
 	if len(v) == 0 {
-		panic(fmt.Sprintf("request.WithQueryList: empty value for %s", k))
+		panic(fmt.Errorf("request.WithQueryList: empty value for %s", k))
 	}
 	for _, i := range v {
 		req.querys.Add(k, i)

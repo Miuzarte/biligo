@@ -16,14 +16,10 @@ func await(tasks ...func()) error {
 
 func awaitCtx(ctx context.Context, tasks ...func()) error {
 	wg := &sync.WaitGroup{}
-	wg.Add(len(tasks))
 	done := make(chan struct{})
 
 	for _, f := range tasks {
-		go func(f func()) {
-			defer wg.Done()
-			f()
-		}(f)
+		wg.Go(f)
 	}
 
 	go func() {

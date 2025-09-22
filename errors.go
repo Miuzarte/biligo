@@ -99,6 +99,8 @@ var (
 
 	ErrLoginEmptyCookie       = errors.New("empty cookie")
 	ErrLoginEmptyRefreshToken = errors.New("empty refresh token")
+	ErrLoginNoDedeUserID      = errors.New("no DedeUserID in cookie")
+	ErrLoginInvalidDedeUserID = errors.New("invalid DedeUserID in cookie")
 	ErrLoginQrcodeExpired     = errors.New("qrcode expired")
 	ErrLoginUnknownCode       = errors.New("unknown code")
 

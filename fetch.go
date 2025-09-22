@@ -427,6 +427,16 @@ func FetchDynamicDetail(id string) (dd DynamicDetail, err error) {
 	return req.ToDynamicDetail()
 }
 
+// FetchDynamicDetailDesktop 获取动态信息 (网页版), 用于补充正文
+func FetchDynamicDetailDesktop(id string) (dd DynamicDetailDesktop, err error) {
+	req := Chain{Req: ReqDynamicDetailDesktop(id)}
+	err = req.Do()
+	if err != nil {
+		return
+	}
+	return req.ToDynamicDetailDesktop()
+}
+
 // FetchVoteInfo 获取投票信息
 func FetchVoteInfo(voteId string) (vi VoteInfo, err error) {
 	req := Chain{Req: ReqVoteInfo(voteId)}
@@ -504,4 +514,14 @@ func FetchNav() (nav Nav, err error) {
 		}
 	}
 	return req.ToNav()
+}
+
+// FetchBuvid34 获取 buvid3 与 buvid4, 用于直播信息流
+func FetchBuvid34() (buvid34 Buvid34, err error) {
+	req := Chain{Req: ReqBuvid34()}
+	err = req.Do()
+	if err != nil {
+		return
+	}
+	return req.ToBuvid34()
 }

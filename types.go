@@ -1070,8 +1070,7 @@ type (
 
 	// "desc"
 	dynamicDesc struct {
-		Text string `json:"text" mapstructure:"text"`
-
+		Text          string                `json:"text" mapstructure:"text"`
 		RichTextNodes []dynamicRichTextNode `json:"rich_text_nodes" mapstructure:"rich_text_nodes"`
 	}
 
@@ -1154,6 +1153,121 @@ type (
 	}
 )
 
+type (
+	// "module_author"
+	dynamicModuleDesktopAuthor struct {
+		// DecorateCard any `json:"decorate_card" mapstructure:"decorate_card"` // null
+		// More struct{} `json:"more" mapstructure:"more"`
+
+		PubText  string `json:"pub_text" mapstructure:"pub_text"`
+		PubTs    int    `json:"pub_ts" mapstructure:"pub_ts"` // (s)
+		Relation struct {
+			Following bool `json:"following" mapstructure:"following"`
+		} `json:"relation" mapstructure:"relation"`
+		ShowFollow bool `json:"show_follow" mapstructure:"show_follow"`
+
+		User struct {
+			Face     string `json:"face" mapstructure:"face"`
+			FaceNft  bool   `json:"face_nft" mapstructure:"face_nft"`
+			Mid      int    `json:"mid" mapstructure:"mid"`
+			Name     string `json:"name" mapstructure:"name"`
+			Official struct {
+				Desc  string `json:"desc" mapstructure:"desc"`
+				Role  int    `json:"role" mapstructure:"role"`
+				Title string `json:"title" mapstructure:"title"`
+				Type  int    `json:"type" mapstructure:"type"`
+			} `json:"official" mapstructure:"official"`
+			Pendant struct {
+				Expire            int    `json:"expire" mapstructure:"expire"`
+				Image             string `json:"image" mapstructure:"image"`
+				ImageEnhance      string `json:"image_enhance" mapstructure:"image_enhance"`
+				ImageEnhanceFrame string `json:"image_enhance_frame" mapstructure:"image_enhance_frame"`
+				NPid              int    `json:"n_pid" mapstructure:"n_pid"`
+				Name              string `json:"name" mapstructure:"name"`
+				Pid               int    `json:"pid" mapstructure:"pid"`
+			} `json:"pendant" mapstructure:"pendant"`
+			// Vip struct{} `json:"vip" mapstructure:"vip"`
+		} `json:"user" mapstructure:"user"`
+	}
+
+	dynamicModuleDesktopDynDraw struct {
+		Items []struct {
+			Height int     `json:"height" mapstructure:"height"`
+			Size   float64 `json:"size" mapstructure:"size"`
+			Src    string  `json:"src" mapstructure:"src"`
+			Width  int     `json:"width" mapstructure:"width"`
+		} `json:"items" mapstructure:"items"`
+	}
+
+	// "module_dynamic"
+	// desktop api 中存放 draw 的图片或转发的原动态
+	dynamicModuleDesktopDynamic struct {
+		DynDraw    *dynamicModuleDesktopDynDraw `json:"dyn_draw,omitempty" mapstructure:"dyn_draw"`
+		DynForward *DynamicDetailDesktop        `json:"dyn_forward,omitempty" mapstructure:"dyn_forward"`
+		// "MDL_DYN_TYPE_DRAW"/"MDL_DYN_TYPE_FORWARD"
+		Type string `json:"type" mapstructure:"type"`
+	}
+
+	dynamicModule struct {
+		Author  *dynamicModuleDesktopAuthor  `json:"module_author,omitempty" mapstructure:"module_author"`
+		Desc    *dynamicDesc                 `json:"module_desc,omitempty" mapstructure:"module_desc"`
+		Dynamic *dynamicModuleDesktopDynamic `json:"module_dynamic,omitempty" mapstructure:"module_dynamic"`
+		Stat    *dynamicModuleStat           `json:"module_stat,omitempty" mapstructure:"module_stat"`
+
+		ModuleType string `json:"module_type" mapstructure:"module_type"`
+	}
+)
+
+type dynamicModules []dynamicModule
+
+func (dms *dynamicModules) GetAuthor() (author *dynamicModuleDesktopAuthor) {
+	if len(*dms) >= 1 && (*dms)[0].ModuleType == "MODULE_TYPE_AUTHOR" {
+		return (*dms)[0].Author
+	}
+	for i := range *dms {
+		if (*dms)[i].ModuleType == "MODULE_TYPE_AUTHOR" {
+			return (*dms)[i].Author
+		}
+	}
+	return nil
+}
+
+func (dms *dynamicModules) GetDesc() (desc *dynamicDesc) {
+	if len(*dms) >= 2 && (*dms)[1].ModuleType == "MODULE_TYPE_DESC" {
+		return (*dms)[1].Desc
+	}
+	for i := range *dms {
+		if (*dms)[i].ModuleType == "MODULE_TYPE_DESC" {
+			return (*dms)[i].Desc
+		}
+	}
+	return nil
+}
+
+func (dms *dynamicModules) GetDyn() (dyn *dynamicModuleDesktopDynamic) {
+	if len(*dms) >= 3 && (*dms)[2].ModuleType == "MODULE_TYPE_DYNAMIC" {
+		return (*dms)[2].Dynamic
+	}
+	for i := range *dms {
+		if (*dms)[i].ModuleType == "MODULE_TYPE_DYNAMIC" {
+			return (*dms)[i].Dynamic
+		}
+	}
+	return nil
+}
+
+func (dms *dynamicModules) GetStat() (stat *dynamicModuleStat) {
+	if len(*dms) >= 4 && (*dms)[3].ModuleType == "MODULE_TYPE_STAT" {
+		return (*dms)[3].Stat
+	}
+	for i := range *dms {
+		if (*dms)[i].ModuleType == "MODULE_TYPE_STAT" {
+			return (*dms)[i].Stat
+		}
+	}
+	return nil
+}
+
 // "data.item" / "data.item.orig"
 type DynamicDetail struct {
 	Basic dynamicBasic `json:"basic" mapstructure:"basic"`
@@ -1190,19 +1304,37 @@ func (dd *DynamicDetail) DoTemplate() string {
 }
 
 func (dd *DynamicDetail) GetReplyList() (rl ReplyList, err error) {
-	var typ CommentClass
-	var id string
+	return FetchReplyList(dd.Basic.CommentType, dd.Basic.CommentIdStr)
+}
 
-	if dd.Modules.Dynamic.Major != nil &&
-		dd.Modules.Dynamic.Major.Draw != nil {
-		typ = COMMENT_TYPE_ALBUM
-		id = itoa(dd.Modules.Dynamic.Major.Draw.Id)
-	} else {
-		typ = COMMENT_TYPE_DYNAMIC
-		id = dd.IdStr
-	}
+// TODO: move path to ../item
+// "data"
+type DynamicDetailDesktop struct {
+	Item struct {
+		Basic struct {
+			RidStr string `json:"rid_str" mapstructure:"rid_str"`
+			RType  int    `json:"rtype" mapstructure:"rtype"`
+		} `json:"basic" mapstructure:"basic"`
+		IdStr string `json:"id_str" mapstructure:"id_str"` // 动态 id
 
-	return FetchReplyList(typ, id)
+		Modules dynamicModules `json:"modules" mapstructure:"modules"`
+
+		// "DYNAMIC_TYPE_FORWARD"       //
+		// "DYNAMIC_TYPE_NONE"          // 只存在于转发的动态 ".orig" 中
+		// "DYNAMIC_TYPE_WORD"          // 没有对应的 "MAJOR_TYPE_xxx"
+		// "DYNAMIC_TYPE_DRAW"          -> "MAJOR_TYPE_DRAW"
+		// "DYNAMIC_TYPE_AV"            -> "MAJOR_TYPE_ARCHIVE"
+		// "DYNAMIC_TYPE_ARTICLE"       -> "MAJOR_TYPE_ARTICLE"
+		// "DYNAMIC_TYPE_MUSIC"         -> "MAJOR_TYPE_MUSIC"
+		// "DYNAMIC_TYPE_LIVE"          // 直播间分享
+		// "DYNAMIC_TYPE_LIVE_RCMD"     -> "MAJOR_TYPE_LIVE_RCMD" // 直播开播(动态流拿不到更新)
+		// "DYNAMIC_TYPE_COMMON_SQUARE" // 装扮 / 剧集点评 / 普通分享
+		// "DYNAMIC_TYPE_PGC_UNION"     -> "MAJOR_TYPE_PGC" // 番剧更新
+		Type string `json:"type" mapstructure:"type"` // "DYNAMIC_TYPE_xxx"
+		// block 的动态也能看到 "DYNAMIC_TYPE_DRAW"
+
+		Visible bool `json:"visible" mapstructure:"visible"`
+	} `json:"item" mapstructure:"item"`
 }
 
 type voteOption struct {
@@ -1539,4 +1671,10 @@ type Nav struct {
 		SubUrl string `json:"sub_url" mapstructure:"sub_url"`
 	} `json:"wbi_img" mapstructure:"wbi_img"`
 	IsJury bool `json:"is_jury" mapstructure:"is_jury"`
+}
+
+// "data"
+type Buvid34 struct {
+	B_3 string `json:"b_3" mapstructure:"b_3"`
+	B_4 string `json:"b_4" mapstructure:"b_4"`
 }

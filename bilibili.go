@@ -10,7 +10,7 @@ func StoreIdentity(id Identity) error {
 	identity.Cookie = id.Cookie
 	identity.RefreshToken = id.RefreshToken
 	identity.Uid = id.Uid
-	return cookie.store(identity.Cookie)
+	return cookie.set(identity.Cookie)
 }
 
 // ExportCookie 返回当前存储的 Cookie
@@ -21,7 +21,7 @@ func ExportCookie() string {
 // StoreCookie 存储新的 Cookie
 func StoreCookie(cookieStr string) error {
 	identity.Cookie = cookieStr
-	return cookie.store(identity.Cookie)
+	return cookie.set(identity.Cookie)
 }
 
 // ExportRefreshToken 返回当前存储的 RefreshToken

@@ -67,7 +67,12 @@ const (
 
 	// 动态详情 [DynamicDetail]
 	//	.WithQuery("id", id)
+	// 图文动态无文字内容
 	URL_DYNAMIC_DETAIL = `https://api.bilibili.com/x/polymer/web-dynamic/v1/detail`
+	// 动态详情 [DynamicDetailDesktop]
+	//	.WithQuery("id", id)
+	// 二次请求补充文字内容
+	URL_DYNAMIC_DETAIL_DESKTOP = `https://api.bilibili.com/x/polymer/web-dynamic/desktop/v1/detail`
 
 	// 投票信息 [VoteInfo]
 	//	.WithQuery("vote_id", voteId)
@@ -115,4 +120,7 @@ const (
 	// NOTE: 未登录时也能正常获取到 wbi keys,
 	// 但是此时响应状态码不为 0
 	URL_NAV = `https://api.bilibili.com/x/web-interface/nav`
+
+	// URL_BUVID3  = `https://api.bilibili.com/x/web-frontend/getbuvid`
+	URL_BUVID34 = `https://api.bilibili.com/x/frontend/finger/spi`
 )
