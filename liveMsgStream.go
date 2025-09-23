@@ -298,11 +298,11 @@ func (s *LiveMsgStream) newPacket(protocolVersion uint16, operation uint32, body
 func (s *LiveMsgStream) parsePacket(data []byte) (pkt liveMsgPacket, err error) {
 	pakLen := binary.BigEndian.Uint32(data[0:4])
 	if int(pakLen) != len(data) {
-		return pkt, wrapErr(ErrLmsInvalidPacket, "int(pakLen) != len(data)")
+		return pkt, wrapErr(ErrLmsInvalidPacket, fmt.Sprintf("int(pakLen) %d != len(data) %d", pakLen, len(data)))
 	}
 	headLen := binary.BigEndian.Uint16(data[4:6])
 	if int(headLen) != 16 {
-		return pkt, wrapErr(ErrLmsInvalidPacket, "int(headLen) != 16")
+		return pkt, wrapErr(ErrLmsInvalidPacket, fmt.Sprintf("int(headLen) %d != 16", headLen))
 	}
 	protocol := binary.BigEndian.Uint16(data[6:8])
 	operation := binary.BigEndian.Uint32(data[8:12])
@@ -347,7 +347,7 @@ func (s *LiveMsgStream) slicePacketsIter(data []byte) iter.Seq2[liveMsgPacket, e
 		for pktPos < total {
 			pktLen = int(binary.BigEndian.Uint32(data[pktPos : pktPos+4]))
 			if pktLen > total {
-				yield(liveMsgPacket{}, wrapErr(ErrLmsInvalidPacket, fmt.Sprintf("pktLen > total: %d > %d", pktLen, total)))
+				yield(liveMsgPacket{}, wrapErr(ErrLmsInvalidPacket, fmt.Sprintf("pktLen %d > total %d", pktLen, total)))
 				return
 			}
 
