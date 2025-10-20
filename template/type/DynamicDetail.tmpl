@@ -3,7 +3,8 @@
 #️⃣{{.Name}}#️⃣{{end}}{{end}}{{with .Modules.Dynamic.Desc}}{{if .}}
 {{.Text}}{{end}}{{end}}{{with .Modules.Dynamic.Major}}{{if .}}{{if .None}}
 {{.None.Tips}}{{end}}{{if .Blocked}}
-{{.Blocked.HintMessage}}{{end}}{{if .Draw}}
+{{.Blocked.HintMessage}}
+{{$.Type}}{{end}}{{if .Draw}}
 {{.Draw.DoTemplate}}{{end}}{{if .Archive}}
 {{.Archive.DoTemplate}}{{end}}{{if .Article}}
 {{.Article.DoTemplate}}{{end}}{{if .Music}}

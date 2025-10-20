@@ -1,9 +1,5 @@
 package biligo
 
-import (
-	"fmt"
-)
-
 // SearchFormatAuto 在 searchType 为空字符串时使用综合搜索,
 // 返回值可被断言为: [*VideoInfo], [*Media], [*LiveStatus], [*ArticleInfo], [*SpaceCard], [*Error]
 func SearchFormatAuto(searchType SearchClass, keyword string) ([]Templatable, error) {
@@ -24,7 +20,7 @@ func SearchFormatAll(keyword string) ([]Templatable, error) {
 
 func SearchFormatType(searchType SearchClass, keyword string) ([]Templatable, error) {
 	if searchType != "" && searchType.String() == "" {
-		return nil, fmt.Errorf("unknown search type: %s", searchType)
+		return nil, wrapErr(ErrSearchUnknownType, searchType)
 	} else if searchType == "" {
 		return nil, wrapErr(ErrSearchEmptyType, nil)
 	}

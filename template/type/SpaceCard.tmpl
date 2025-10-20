@@ -1,5 +1,6 @@
 {{define "SpaceCard"}}{{with .Card}}[CQ:image,file={{.Face}}]
-{{.Name}}（LV{{.LevelInfo.CurrentLevel}}）
+{{.Name}}（LV{{.LevelInfo.CurrentLevel}}）{{if eq .Spacesta -2}}
+（该账号封禁中）{{end}}
 {{FmtNum .Fans}} 粉丝  {{FmtNum .Attention}} 关注{{if .Sign}}
 签名：{{.Sign}}{{end}}
 space.bilibili.com/{{.Mid}}{{end}}{{end}}

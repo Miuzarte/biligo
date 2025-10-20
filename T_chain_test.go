@@ -110,7 +110,7 @@ func TestLiveStatus(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	fmt.Println(live.Get(1954091502).DoTemplate())
+	fmt.Println(live.Get(uid).DoTemplate())
 }
 
 func TestArticle(t *testing.T) {

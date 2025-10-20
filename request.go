@@ -68,8 +68,18 @@ func ReqSpaceCard(uid string) *Request {
 }
 
 func ReqRelationStat(uid string) *Request {
-	return NewGet(URL_RELATION_STAT).
+	return NewGet(URL_RELATION_STAT).WbiSign().
 		WithQuery("vmid", uid)
+}
+
+func ReqDynamicSpace(uid string) *Request {
+	return NewGet(URL_DYNAMIC_SPACE).WbiSign().
+		WithQuery("host_mid", uid)
+}
+
+func ReqDynamicSpaceDesktop(uid string) *Request {
+	return NewGet(URL_DYNAMIC_SPACE_DESKTOP).
+		WithQuery("host_mid", uid)
 }
 
 func ReqDynamicAll() *Request {

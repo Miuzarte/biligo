@@ -321,23 +321,9 @@ type MediaSection struct {
 // "data"
 type LiveStatusUid map[string]*LiveStatus // Uid -> LiveStatus
 
-func (lsu LiveStatusUid) Get(uid any) *LiveStatus {
-	switch uid := uid.(type) {
-	case string:
-		return lsu[uid]
-	case int:
-		return lsu[itoa(uid)]
-	case int64:
-		return lsu[itoa(uid)]
-	case int32:
-		return lsu[itoa(uid)]
-	case fmt.Stringer:
-		return lsu[uid.String()]
-	case nil:
-		return nil
-	default:
-		return lsu[fmt.Sprint(uid)]
-	}
+// Deprecated: 直接使用 map 访问
+func (lsu LiveStatusUid) Get(uid string) *LiveStatus {
+	return lsu[uid]
 }
 
 func (lsu LiveStatusUid) DoTemplate() map[string]string {
@@ -686,14 +672,14 @@ func (s *Song) DoTemplate() string {
 // "data"
 type SpaceCard struct {
 	Card struct {
-		Mid  string `json:"mid" mapstructure:"mid"`   // uid
-		Name string `json:"name" mapstructure:"name"` // 昵称
-		Sex  string `json:"sex" mapstructure:"sex"`   // 性别 // "男"
-		Face string `json:"face" mapstructure:"face"` // 头像 url
-
-		Fans      int `json:"fans" mapstructure:"fans"`           // 粉丝数
-		Friend    int `json:"friend" mapstructure:"friend"`       // 关注数
-		Attention int `json:"attention" mapstructure:"attention"` // 关注数
+		Mid       string `json:"mid" mapstructure:"mid"`             // uid
+		Name      string `json:"name" mapstructure:"name"`           // 昵称
+		Sex       string `json:"sex" mapstructure:"sex"`             // 性别 // "男"
+		Face      string `json:"face" mapstructure:"face"`           // 头像 url
+		Spacesta  int    `json:"spacesta" mapstructure:"spacesta"`   // 0: 正常, -2: 封禁
+		Fans      int    `json:"fans" mapstructure:"fans"`           // 粉丝数
+		Friend    int    `json:"friend" mapstructure:"friend"`       // 关注数
+		Attention int    `json:"attention" mapstructure:"attention"` // 关注数
 
 		Sign string `json:"sign" mapstructure:"sign"` // 签名
 
@@ -1268,6 +1254,15 @@ func (dms *dynamicModules) GetStat() (stat *dynamicModuleStat) {
 	return nil
 }
 
+// "data"
+type DynamicSpace struct {
+	HasMore        bool            `json:"has_more" mapstructure:"has_more"`
+	Items          []DynamicDetail `json:"items" mapstructure:"items"`
+	Offset         string          `json:"offset" mapstructure:"offset"`
+	UpdateBaseline string          `json:"update_baseline" mapstructure:"update_baseline"` // ? ""
+	UpdateNum      int             `json:"update_num" mapstructure:"update_num"`           // ? 0
+}
+
 // "data.item" / "data.item.orig"
 type DynamicDetail struct {
 	Basic dynamicBasic `json:"basic" mapstructure:"basic"`
@@ -1307,34 +1302,46 @@ func (dd *DynamicDetail) GetReplyList() (rl ReplyList, err error) {
 	return FetchReplyList(dd.Basic.CommentType, dd.Basic.CommentIdStr)
 }
 
-// TODO: move path to ../item
 // "data"
+type DynamicSpaceDesktop struct {
+	ErrMsg         any                        `json:"err_msg" mapstructure:"err_msg"` // null
+	HasMore        bool                       `json:"has_more" mapstructure:"has_more"`
+	Items          []DynamicDetailDesktopItem `json:"items" mapstructure:"items"`
+	Offset         string                     `json:"offset" mapstructure:"offset"`
+	UpdateBaseline string                     `json:"update_baseline" mapstructure:"update_baseline"` // ? ""
+	UpdateNum      int                        `json:"update_num" mapstructure:"update_num"`           // ? 0
+}
+
+// "data"
+// 转发的原动态中也有一层 "item", 故无法省略
 type DynamicDetailDesktop struct {
-	Item struct {
-		Basic struct {
-			RidStr string `json:"rid_str" mapstructure:"rid_str"`
-			RType  int    `json:"rtype" mapstructure:"rtype"`
-		} `json:"basic" mapstructure:"basic"`
-		IdStr string `json:"id_str" mapstructure:"id_str"` // 动态 id
+	Item DynamicDetailDesktopItem `json:"item" mapstructure:"item"`
+}
 
-		Modules dynamicModules `json:"modules" mapstructure:"modules"`
+type DynamicDetailDesktopItem struct {
+	Basic struct {
+		RidStr string `json:"rid_str" mapstructure:"rid_str"`
+		RType  int    `json:"rtype" mapstructure:"rtype"`
+	} `json:"basic" mapstructure:"basic"`
+	IdStr string `json:"id_str" mapstructure:"id_str"` // 动态 id
 
-		// "DYNAMIC_TYPE_FORWARD"       //
-		// "DYNAMIC_TYPE_NONE"          // 只存在于转发的动态 ".orig" 中
-		// "DYNAMIC_TYPE_WORD"          // 没有对应的 "MAJOR_TYPE_xxx"
-		// "DYNAMIC_TYPE_DRAW"          -> "MAJOR_TYPE_DRAW"
-		// "DYNAMIC_TYPE_AV"            -> "MAJOR_TYPE_ARCHIVE"
-		// "DYNAMIC_TYPE_ARTICLE"       -> "MAJOR_TYPE_ARTICLE"
-		// "DYNAMIC_TYPE_MUSIC"         -> "MAJOR_TYPE_MUSIC"
-		// "DYNAMIC_TYPE_LIVE"          // 直播间分享
-		// "DYNAMIC_TYPE_LIVE_RCMD"     -> "MAJOR_TYPE_LIVE_RCMD" // 直播开播(动态流拿不到更新)
-		// "DYNAMIC_TYPE_COMMON_SQUARE" // 装扮 / 剧集点评 / 普通分享
-		// "DYNAMIC_TYPE_PGC_UNION"     -> "MAJOR_TYPE_PGC" // 番剧更新
-		Type string `json:"type" mapstructure:"type"` // "DYNAMIC_TYPE_xxx"
-		// block 的动态也能看到 "DYNAMIC_TYPE_DRAW"
+	Modules dynamicModules `json:"modules" mapstructure:"modules"`
 
-		Visible bool `json:"visible" mapstructure:"visible"`
-	} `json:"item" mapstructure:"item"`
+	// "DYNAMIC_TYPE_FORWARD"       //
+	// "DYNAMIC_TYPE_NONE"          // 只存在于转发的动态 ".orig" 中
+	// "DYNAMIC_TYPE_WORD"          // 没有对应的 "MAJOR_TYPE_xxx"
+	// "DYNAMIC_TYPE_DRAW"          -> "MAJOR_TYPE_DRAW"
+	// "DYNAMIC_TYPE_AV"            -> "MAJOR_TYPE_ARCHIVE"
+	// "DYNAMIC_TYPE_ARTICLE"       -> "MAJOR_TYPE_ARTICLE"
+	// "DYNAMIC_TYPE_MUSIC"         -> "MAJOR_TYPE_MUSIC"
+	// "DYNAMIC_TYPE_LIVE"          // 直播间分享
+	// "DYNAMIC_TYPE_LIVE_RCMD"     -> "MAJOR_TYPE_LIVE_RCMD" // 直播开播(动态流拿不到更新)
+	// "DYNAMIC_TYPE_COMMON_SQUARE" // 装扮 / 剧集点评 / 普通分享
+	// "DYNAMIC_TYPE_PGC_UNION"     -> "MAJOR_TYPE_PGC" // 番剧更新
+	Type string `json:"type" mapstructure:"type"` // "DYNAMIC_TYPE_xxx"
+	// block 的动态也能看到 "DYNAMIC_TYPE_DRAW"
+
+	Visible bool `json:"visible" mapstructure:"visible"`
 }
 
 type voteOption struct {

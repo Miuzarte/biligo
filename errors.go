@@ -85,6 +85,8 @@ var (
 	ErrFetchCidNotExists    = errors.New("cid not exists")
 )
 
+var ErrFetchDynamicSpaceItemsNotEqual = errors.New("dynamic space items length not equal")
+
 var (
 	ErrLmsPacketNotBinary  = errors.New("packet not binary")
 	ErrLmsFailedToGetToken = errors.New("failed to get token")
@@ -120,6 +122,9 @@ var (
 	ErrParseLiveNoUid   = errors.New("no uid in result")
 )
 
-var ErrSearchEmptyType = errors.New("empty search type")
+var (
+	ErrSearchUnknownType = errors.New("unknown search type")
+	ErrSearchEmptyType   = errors.New("empty search type")
+)
 
 var ErrWbiEmptyUrls = errors.New("empty image or sub url")

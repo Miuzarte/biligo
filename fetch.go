@@ -364,26 +364,6 @@ func FetchRelationStat(uid string) (rs RelationStat, err error) {
 	return req.ToRelationStat()
 }
 
-// FetchDynamicAll 获取全部动态列表
-func FetchDynamicAll() (da DynamicAll, err error) {
-	req := Chain{Req: ReqDynamicAll()}
-	err = req.Do()
-	if err != nil {
-		return
-	}
-	return req.ToDynamicAll()
-}
-
-// FetchDynamicAllUpdate 获取新动态数量
-func FetchDynamicAllUpdate(updateBaseline string) (dau DynamicAllUpdate, err error) {
-	req := Chain{Req: ReqDynamicAllUpdate(updateBaseline)}
-	err = req.Do()
-	if err != nil {
-		return
-	}
-	return req.ToDynamicAllUpdate()
-}
-
 // FetchVideoPlayurl 获取视频流地址,
 // 不提供 cid 时默认获取 P1,
 // 取 dash 流时不需要 qn,
@@ -415,6 +395,131 @@ func FetchVideoPlayurl(id, cid string, fnval VideoFormat, qn ...VideoQuality) (v
 		return
 	}
 	return req.ToVideoPlayurl()
+}
+
+// FetchDynamicSpaceFix 获取用户空间动态并补充正文
+func FetchDynamicSpaceFix(uid string) (ds DynamicSpace, err error) {
+	var wg sync.WaitGroup
+	var dsd DynamicSpaceDesktop
+	var err1, err2 error
+
+	wg.Go(func() {
+		ds, err1 = FetchDynamicSpace(uid)
+	})
+	wg.Go(func() {
+		dsd, err2 = FetchDynamicSpaceDesktop(uid)
+	})
+	wg.Wait()
+
+	if err1 != nil {
+		err = err1
+		return
+	}
+	if err2 != nil {
+		err = err2
+		return
+	}
+
+	// 不一致也不管了
+	// if len(ds.Items) != len(dsd.Items) {
+	// 	// 数量不一致
+	// 	return ds, wrapErr(ErrFetchDynamicSpaceItemsNotEqual, []int{len(ds.Items), len(dsd.Items)})
+	// }
+
+	// 收集为 map 方便索引
+	dsdMap := make(map[string]*DynamicDetailDesktopItem, len(ds.Items))
+	for _, item := range dsd.Items {
+		dsdMap[item.IdStr] = &item
+	}
+
+	for i := range ds.Items {
+		DynamicDetailFix(&ds.Items[i], dsdMap[ds.Items[i].IdStr])
+	}
+
+	return
+}
+
+// FetchDynamicSpace 获取用户空间动态
+func FetchDynamicSpace(uid string) (ds DynamicSpace, err error) {
+	req := Chain{Req: ReqDynamicSpace(uid)}
+	err = req.Do()
+	if err != nil {
+		return
+	}
+	return req.ToDynamicSpace()
+}
+
+// FetchDynamicSpaceDesktop 获取用户空间动态 (网页版), 用于补充正文
+func FetchDynamicSpaceDesktop(uid string) (dsd DynamicSpaceDesktop, err error) {
+	req := Chain{Req: ReqDynamicSpaceDesktop(uid)}
+	err = req.Do()
+	if err != nil {
+		return
+	}
+	return req.ToDynamicSpaceDesktop()
+}
+
+// FetchDynamicAll 获取全部动态列表
+func FetchDynamicAll() (da DynamicAll, err error) {
+	req := Chain{Req: ReqDynamicAll()}
+	err = req.Do()
+	if err != nil {
+		return
+	}
+	return req.ToDynamicAll()
+}
+
+// FetchDynamicAllUpdate 获取新动态数量
+func FetchDynamicAllUpdate(updateBaseline string) (dau DynamicAllUpdate, err error) {
+	req := Chain{Req: ReqDynamicAllUpdate(updateBaseline)}
+	err = req.Do()
+	if err != nil {
+		return
+	}
+	return req.ToDynamicAllUpdate()
+}
+
+// DynamicDetailFix 用 desktop api 补充正文
+func DynamicDetailFix(dd *DynamicDetail, dddi *DynamicDetailDesktopItem) {
+	if dd.Modules.Dynamic.Desc == nil {
+		dd.Modules.Dynamic.Desc = dddi.Modules.GetDesc()
+	}
+	if dd.Orig != nil {
+		// 转发的动态
+		if dd.Orig.Modules.Dynamic.Desc == nil {
+			forward := dddi.Modules.GetDyn()
+			if forward != nil && forward.DynForward != nil {
+				dd.Orig.Modules.Dynamic.Desc = forward.DynForward.Item.Modules.GetDesc()
+			}
+		}
+	}
+}
+
+// FetchDynamicDetailFix 获取动态信息并补充正文
+func FetchDynamicDetailFix(id string) (dd DynamicDetail, err error) {
+	var wg sync.WaitGroup
+	var ddd DynamicDetailDesktop
+	var err1, err2 error
+
+	wg.Go(func() {
+		dd, err1 = FetchDynamicDetail(id)
+	})
+	wg.Go(func() {
+		ddd, err2 = FetchDynamicDetailDesktop(id)
+	})
+	wg.Wait()
+
+	if err1 != nil {
+		err = err1
+		return
+	}
+	if err2 != nil {
+		err = err2
+		return
+	}
+
+	DynamicDetailFix(&dd, &ddd.Item)
+	return
 }
 
 // FetchDynamicDetail 获取动态信息
@@ -508,8 +613,13 @@ func FetchNav() (nav Nav, err error) {
 	req := Chain{Req: ReqNav()}
 	err = req.Do()
 	if err != nil {
+		e, ok := err.(*Error)
+		if !ok {
+			return
+		}
 		// 未登录时响应状态码不为 0, 会返回 err
-		if !err.(*Error).Is(ErrChainRespCodeNotZero) {
+		if !e.Is(ErrChainRespCodeNotZero) {
+			err = nil
 			return
 		}
 	}

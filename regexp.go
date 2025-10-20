@@ -3,7 +3,6 @@ package biligo
 import (
 	"regexp"
 	"strings"
-	"sync"
 )
 
 var (
@@ -72,11 +71,12 @@ func (r ParseResult) FetchFormat() (string, error) {
 		if room.Uid == 0 {
 			return "", wrapErr(ErrParseLiveNoUid, room)
 		}
-		live, err := FetchLiveStatus(itoa(room.Uid))
+		uidStr := itoa(room.Uid)
+		live, err := FetchLiveStatus(uidStr)
 		if err != nil {
 			return "", err
 		}
-		return live.Get(room.Uid).DoTemplate(), nil
+		return live.Get(uidStr).DoTemplate(), nil
 
 	case LINK_TYPE_ARTICLE:
 		article, err := FetchArticleInfo(r.Content)
@@ -101,36 +101,10 @@ func (r ParseResult) FetchFormat() (string, error) {
 
 	case LINK_TYPE_DYNAMIC:
 		// 同时请求 desktop api 补充正文
-		var wg sync.WaitGroup
-		var dd DynamicDetail
-		var ddd DynamicDetailDesktop
-		var err1, err2 error
-		wg.Go(func() {
-			dd, err1 = FetchDynamicDetail(r.Content)
-		})
-		wg.Go(func() {
-			ddd, err2 = FetchDynamicDetailDesktop(r.Content)
-		})
-		wg.Wait()
-		if err1 != nil {
-			return "", err1
+		dd, err := FetchDynamicDetailFix(r.Content)
+		if err != nil {
+			return "", err
 		}
-		if err2 != nil {
-			return "", err2
-		}
-
-		if dd.Modules.Dynamic.Desc == nil {
-			dd.Modules.Dynamic.Desc = ddd.Item.Modules.GetDesc()
-		}
-		if dd.Orig != nil {
-			if dd.Orig.Modules.Dynamic.Desc == nil {
-				forward := ddd.Item.Modules.GetDyn()
-				if forward != nil && forward.DynForward != nil {
-					dd.Orig.Modules.Dynamic.Desc = forward.DynForward.Item.Modules.GetDesc()
-				}
-			}
-		}
-
 		return dd.DoTemplate(), nil
 
 	default:

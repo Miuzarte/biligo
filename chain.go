@@ -141,6 +141,26 @@ func (c *Chain) ToReplyList() (rl ReplyList, err error) {
 	return
 }
 
+func (c *Chain) ToDynamicSpace() (ds DynamicSpace, err error) {
+	err = c.ParseTo(&ds, "data")
+	return
+}
+
+func (c *Chain) ToDynamicSpaceDesktop() (dsd DynamicSpaceDesktop, err error) {
+	err = c.ParseTo(&dsd, "data")
+	return
+}
+
+func (c *Chain) ToDynamicAll() (da DynamicAll, err error) {
+	err = c.ParseTo(&da, "data")
+	return
+}
+
+func (c *Chain) ToDynamicAllUpdate() (dau DynamicAllUpdate, err error) {
+	err = c.ParseTo(&dau, "data")
+	return
+}
+
 func (c *Chain) ToDynamicDetail() (dd DynamicDetail, err error) {
 	err = c.ParseTo(&dd, "data.item")
 	return
@@ -168,16 +188,6 @@ func (c *Chain) ToQrcodePoll() (qp QrcodePoll, err error) {
 
 func (c *Chain) ToRelationStat() (rs RelationStat, err error) {
 	err = c.ParseTo(&rs, "data")
-	return
-}
-
-func (c *Chain) ToDynamicAll() (da DynamicAll, err error) {
-	err = c.ParseTo(&da, "data")
-	return
-}
-
-func (c *Chain) ToDynamicAllUpdate() (dau DynamicAllUpdate, err error) {
-	err = c.ParseTo(&dau, "data")
 	return
 }
 

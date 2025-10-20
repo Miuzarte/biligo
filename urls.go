@@ -59,6 +59,13 @@ const (
 	//	.WithQuery("vmid", uid)
 	URL_RELATION_STAT = `https://api.bilibili.com/x/relation/stat`
 
+	// 用户空间动态 [DynamicSpace]
+	// .WithQuery("host_mid", uid)
+	URL_DYNAMIC_SPACE = `https://api.bilibili.com/x/polymer/web-dynamic/v1/feed/space`
+	// 用户空间动态 [DynamicSpaceDesktop]
+	// .WithQuery("host_mid", uid)
+	URL_DYNAMIC_SPACE_DESKTOP = `https://api.bilibili.com/x/polymer/web-dynamic/desktop/v1/feed/space`
+
 	// 全部动态列表 [DynamicAll]
 	URL_DYNAMIC_ALL = `https://api.bilibili.com/x/polymer/web-dynamic/v1/feed/all`
 	// 新动态数量 [DynamicAllUpdate]
