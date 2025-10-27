@@ -20,7 +20,7 @@ func testingLoadIdentity(t interface{ Error(...any) }) {
 	if err != nil {
 		t.Error(err)
 	}
-	err = StoreIdentity(id)
+	err = ImportIdentity(id)
 	if err != nil {
 		t.Error(err)
 	}
