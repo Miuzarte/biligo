@@ -3,6 +3,7 @@ package biligo
 import (
 	"bytes"
 	"compress/zlib"
+	"context"
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
@@ -11,34 +12,51 @@ import (
 	"net/http"
 	"net/url"
 	"slices"
-	"sync"
 	"sync/atomic"
 	"time"
 
 	"github.com/andybalholm/brotli"
-	"github.com/gorilla/websocket"
+	"github.com/coder/websocket"
 )
 
 func SetWsDialerProxy(pf func(*http.Request) (*url.URL, error)) {
-	wsDialer.Proxy = pf
+	dialOp.HTTPClient.Transport.(*http.Transport).Proxy = pf
 }
 
-var wsDialer = &websocket.Dialer{
-	// Proxy: http.ProxyFromEnvironment,
-	Proxy:            nil,
-	HandshakeTimeout: 45 * time.Second,
-	Jar:              cookie,
+var dialOp = newDialOp()
+
+func newDialOp() websocket.DialOptions {
+	dialOp := websocket.DialOptions{
+		HTTPClient: &http.Client{
+			Transport: &http.Transport{
+				// Proxy: http.ProxyFromEnvironment,
+				Proxy:                 nil,
+				ForceAttemptHTTP2:     true,
+				MaxIdleConns:          100,
+				IdleConnTimeout:       90 * time.Second,
+				TLSHandshakeTimeout:   10 * time.Second,
+				ExpectContinueTimeout: 1 * time.Second,
+			},
+			Jar: cookie,
+		},
+		HTTPHeader: make(http.Header),
+	}
+	for k, v := range DefaultHeaders {
+		dialOp.HTTPHeader.Add(k, v)
+	}
+	return dialOp
 }
 
 type LiveMsgStream struct {
+	ctx    context.Context
+	cancel context.CancelFunc
+
 	*websocket.Conn
-	connMu sync.Mutex
 
 	roomId   int
 	sequence uint32
 
-	heartBeatRunning atomic.Bool
-	heartBeatStop    chan struct{}
+	heartBeatRunning atomic.Bool // (?is atomic necessary
 
 	// cmdStatistics map[string]int
 	// protoVerStatistics map[uint16]int
@@ -46,8 +64,8 @@ type LiveMsgStream struct {
 
 func NewLiveMsgStream(roomId int) *LiveMsgStream {
 	lms := &LiveMsgStream{
-		heartBeatStop: make(chan struct{}, 1),
-		roomId:        roomId,
+		roomId: roomId,
+
 		// cmdStatistics: make(map[string]int),
 		// protoVerStatistics: make(map[uint16]int),
 	}
@@ -73,11 +91,11 @@ func (s *LiveMsgStream) RunIter() iter.Seq2[string, error] {
 		go s.hearteatLoop()
 
 		for {
-			msgType, data, err := s.Conn.ReadMessage()
+			msgType, data, err := s.Conn.Read(s.ctx)
 			if err != nil {
-				if websocket.IsCloseError(err,
-					websocket.CloseNormalClosure,
-					websocket.CloseAbnormalClosure) {
+				switch websocket.CloseStatus(err) {
+				case websocket.StatusNormalClosure,
+					websocket.StatusAbnormalClosure:
 					yield("", err)
 					return
 				}
@@ -86,7 +104,7 @@ func (s *LiveMsgStream) RunIter() iter.Seq2[string, error] {
 				}
 				return
 			}
-			if msgType != websocket.BinaryMessage {
+			if msgType != websocket.MessageBinary {
 				if yield("", wrapErr(ErrLmsPacketNotBinary, msgType)) {
 					continue
 				}
@@ -136,6 +154,8 @@ type LiveDanmuInfo struct {
 
 // connect 发起连接并发送认证包
 func (s *LiveMsgStream) connect() error {
+	s.ctx, s.cancel = context.WithCancel(context.Background())
+
 	ldi, err := FetchLiveDanmuInfo(itoa(s.roomId))
 	if err != nil {
 		return err
@@ -143,21 +163,19 @@ func (s *LiveMsgStream) connect() error {
 	if ldi.Token == "" {
 		return wrapErr(ErrLmsFailedToGetToken, ldi)
 	}
+
 	hosts := make([]string, 0, len(ldi.HostList))
 	for _, h := range ldi.HostList {
 		hosts = append(hosts, "wss://"+h.Host+"/sub")
 	}
 
-	reqHeader := http.Header{}
-	for k, v := range DefaultHeaders {
-		reqHeader.Add(k, v)
-	}
 	var conn *websocket.Conn
 	for _, h := range hosts {
-		conn, _, err = wsDialer.Dial(h, reqHeader)
+		conn, _, err = websocket.Dial(s.ctx, h, &dialOp)
 		if err != nil {
 			continue
 		}
+		conn.SetReadLimit(-1)
 		break
 	}
 	if err != nil {
@@ -165,15 +183,9 @@ func (s *LiveMsgStream) connect() error {
 	}
 
 	// 认证包
-	pkt, err := s.newAuthPacket(ldi.Token)
+	err = conn.Write(s.ctx, websocket.MessageBinary, s.newAuthPacket(ldi.Token))
 	if err != nil {
-		conn.Close()
-		return err
-	}
-
-	err = conn.WriteMessage(websocket.BinaryMessage, pkt)
-	if err != nil {
-		conn.Close()
+		conn.CloseNow()
 		return err
 	}
 
@@ -181,21 +193,9 @@ func (s *LiveMsgStream) connect() error {
 	return nil
 }
 
-func (s *LiveMsgStream) Write(data []byte) error {
-	s.connMu.Lock()
-	defer s.connMu.Unlock()
-	if s.Conn == nil {
-		return wrapErr(ErrLmsNilConn, nil)
-	}
-	return s.Conn.WriteMessage(websocket.BinaryMessage, data)
-}
-
 func (s *LiveMsgStream) Stop() *LiveMsgStream {
-	if s.Conn == nil {
-		return s
-	}
-	go s.tryStopHeartbeat()
-	s.Write(websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+	s.Close(websocket.StatusNormalClosure, "")
+	s.cancel()
 	return s
 }
 
@@ -203,43 +203,35 @@ func (s *LiveMsgStream) Stop() *LiveMsgStream {
 // 	return s.cmdStatistics, s.protoVerStatistics
 // }
 
-func (s *LiveMsgStream) tryStopHeartbeat() {
-	if !s.heartBeatRunning.Load() {
-		return
-	}
-	select {
-	case s.heartBeatStop <- struct{}{}:
-	case <-time.After(time.Second * 5):
-	}
-}
-
 // hearteatLoop 每 30s 发送心跳包
 func (s *LiveMsgStream) hearteatLoop() {
 	defer s.heartBeatRunning.Store(false)
 
 	var pkt liveMsgPacket
 	var err error
-mainLoop:
+MAIN_LOOP:
 	for {
 		select {
 		case <-time.After(time.Second * 30):
-			for range 4 { // 重试最多 4 次
+			// 每 30s 发送一次心跳包
+			for range 4 {
+				// 重试最多 4 次 5s
 				pkt = s.newPacket(PROTOCOL_PLAIN, OPERATION_HEARTBEAT, nil)
-				err = s.Write(pkt.build())
+				err = s.Conn.Write(s.ctx, websocket.MessageBinary, pkt.build())
 				if err == nil {
-					continue mainLoop
+					continue MAIN_LOOP
 				}
 
 				select {
 				case <-time.After(time.Second * 5):
-				case <-s.heartBeatStop:
+				case <-s.ctx.Done():
 					return
 				}
 			}
 			s.Stop()
 			return
 
-		case <-s.heartBeatStop:
+		case <-s.ctx.Done():
 			return
 		}
 	}
@@ -320,23 +312,21 @@ type liveAuthenticate struct {
 	Key      string `json:"key"`
 }
 
-func (s *LiveMsgStream) newAuthPacket(key string) ([]byte, error) {
-	j, err := json.Marshal(
-		liveAuthenticate{
-			Uid:      identity.Uid, // uid 为 0 游客登录
-			RoomId:   s.roomId,
-			ProtoVer: 3,
-			Platform: "web",
-			Type:     2,
-			Key:      key,
-		},
-	)
+func (s *LiveMsgStream) newAuthPacket(key string) []byte {
+	j, err := json.Marshal(liveAuthenticate{
+		Uid:      identity.Uid, // uid 为 0 游客登录
+		RoomId:   s.roomId,
+		ProtoVer: 3,
+		Platform: "web",
+		Type:     2,
+		Key:      key,
+	})
 	if err != nil {
 		panic(err)
 	}
 
 	pkt := s.newPacket(PROTOCOL_PLAIN, OPERATION_AUTHENTICATION, j)
-	return pkt.build(), nil
+	return pkt.build()
 }
 
 func (s *LiveMsgStream) slicePacketsIter(data []byte) iter.Seq2[liveMsgPacket, error] {

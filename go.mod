@@ -4,7 +4,7 @@ go 1.25
 
 require (
 	github.com/andybalholm/brotli v1.2.0
-	github.com/gorilla/websocket v1.5.3
+	github.com/coder/websocket v1.8.14
 	github.com/tidwall/gjson v1.18.0
 )
 
