@@ -53,11 +53,16 @@ func RegisterVideoConclusion(ctx context.Context, id, cid string, f func(VideoCo
 				f(vc, nil)
 				return
 
+			case vc.Code == -1 && vc.Stid == "0": // no conclusion
+				f(vc, wrapErr(ErrPollNoSummary, nil))
+				return
+
 			case vc.Code == 1 && vc.Stid == "0": // in queue
 
 			case vc.Code == 1 && vc.Stid == "": // no voice recognized
 				f(vc, wrapErr(ErrPollNoVoiceRecognized, nil))
 				return
+
 			default: // unknown code
 				f(vc, wrapErr(ErrPollUnknownCode, req.Body))
 				return
