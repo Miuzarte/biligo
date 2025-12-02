@@ -194,8 +194,12 @@ func (s *LiveMsgStream) connect() error {
 }
 
 func (s *LiveMsgStream) Stop() *LiveMsgStream {
+	if s.Conn == nil {
+		return s
+	}
 	s.Close(websocket.StatusNormalClosure, "")
 	s.cancel()
+	s.Conn = nil
 	return s
 }
 
@@ -288,6 +292,9 @@ func (s *LiveMsgStream) newPacket(protocolVersion uint16, operation uint32, body
 }
 
 func (s *LiveMsgStream) parsePacket(data []byte) (pkt liveMsgPacket, err error) {
+	if len(data) < 16 {
+		return pkt, wrapErr(ErrLmsInvalidPacket, fmt.Sprintf("data length too short: %d", len(data)))
+	}
 	pakLen := binary.BigEndian.Uint32(data[0:4])
 	if int(pakLen) != len(data) {
 		return pkt, wrapErr(ErrLmsInvalidPacket, fmt.Sprintf("int(pakLen) %d != len(data) %d", pakLen, len(data)))
