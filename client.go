@@ -43,7 +43,7 @@ func newClient() client {
 			},
 			Jar: cookie,
 		},
-		Headers: make(http.Header),
+		Headers: http.Header{},
 	}
 	for k, v := range DefaultHeaders {
 		c.Headers.Add(k, v)

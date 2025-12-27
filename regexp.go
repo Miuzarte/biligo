@@ -160,6 +160,6 @@ func ParseLink(s string) (results []ParseResult, err error) {
 		results = append(results, ParseResult{LINK_TYPE_DYNAMIC, v[REGEXP_INDEX_DYNAMIC]})
 	}
 
-	set := make(set[ParseResult])
+	set := set[ParseResult]{}
 	return set.clean(results), nil
 }

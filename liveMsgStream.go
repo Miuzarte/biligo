@@ -39,7 +39,7 @@ func newDialOp() websocket.DialOptions {
 			},
 			Jar: cookie,
 		},
-		HTTPHeader: make(http.Header),
+		HTTPHeader: http.Header{},
 	}
 	for k, v := range DefaultHeaders {
 		dialOp.HTTPHeader.Add(k, v)
@@ -66,8 +66,8 @@ func NewLiveMsgStream(roomId int) *LiveMsgStream {
 	lms := &LiveMsgStream{
 		roomId: roomId,
 
-		// cmdStatistics: make(map[string]int),
-		// protoVerStatistics: make(map[uint16]int),
+		// cmdStatistics: map[string]int{},
+		// protoVerStatistics: map[uint16]int{},
 	}
 	return lms
 }

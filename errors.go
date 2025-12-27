@@ -3,6 +3,7 @@ package biligo
 import (
 	"errors"
 	"fmt"
+	"io"
 )
 
 func wrapErr(err error, detail any) error {
@@ -24,7 +25,7 @@ func UnwrapErr(err error) *Error {
 
 // Error 附带了更详细的信息
 //
-// biliErr := bilibili.UnwarpErr(err)
+// biliErr := biligo.UnwarpErr(err)
 //
 // isXxx := biliErr.Is(ErrXXX)
 type Error struct {
@@ -45,6 +46,12 @@ func (e *Error) Error() string {
 // implement [Templatable] for convenient string output
 func (e *Error) DoTemplate() string {
 	return e.Error()
+}
+
+// implement [Templatable] for convenient string output
+func (e *Error) DoTemplateTo(w io.Writer) error {
+	w.Write([]byte(e.Error()))
+	return e
 }
 
 func (e *Error) Unwrap() error {

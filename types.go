@@ -3,6 +3,7 @@ package biligo
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"strings"
 )
 
@@ -96,6 +97,10 @@ func (vi *VideoInfo) DoTemplate() string {
 	return DoTemplate(vi)
 }
 
+func (vi *VideoInfo) DoTemplateTo(w io.Writer) error {
+	return DoTemplateTo(w, vi)
+}
+
 func (vi *VideoInfo) GetReplyList() (rl ReplyList, err error) {
 	return FetchReplyList(COMMENT_TYPE_VIDEO, itoa(vi.Aid))
 }
@@ -164,6 +169,10 @@ func (vc *VideoConclusion) DoTemplate() string {
 	return DoTemplate(vc)
 }
 
+func (vc *VideoConclusion) DoTemplateTo(w io.Writer) error {
+	return DoTemplateTo(w, vc)
+}
+
 func (vcf *VideoConclusion) Ok() bool {
 	return vcf != nil && vcf.Code == 0 && vcf.ModelResult.Summary != ""
 }
@@ -207,6 +216,10 @@ type MediaBase struct {
 
 func (mb *MediaBase) DoTemplate() string {
 	return DoTemplate(mb)
+}
+
+func (mb *MediaBase) DoTemplateTo(w io.Writer) error {
+	return DoTemplateTo(w, mb)
 }
 
 // incomplete
@@ -304,6 +317,10 @@ func (m *Media) DoTemplate() string {
 	return DoTemplate(m)
 }
 
+func (m *Media) DoTemplateTo(w io.Writer) error {
+	return DoTemplateTo(w, m)
+}
+
 type mediaSection struct {
 	Episodes []mediaEpisode `json:"episodes" mapstructure:"episodes"`
 	Id       int            `json:"id" mapstructure:"id"`
@@ -372,6 +389,10 @@ func (ls *LiveStatus) DoTemplate() string {
 	return DoTemplate(ls)
 }
 
+func (ls *LiveStatus) DoTemplateTo(w io.Writer) error {
+	return DoTemplateTo(w, ls)
+}
+
 // [URL_LIVE_INFO_ROOMID]
 // "data"
 type LiveRoomInfo struct {
@@ -434,6 +455,10 @@ func (lri *LiveRoomInfo) DoTemplate() string {
 	return DoTemplate(lri)
 }
 
+func (lri *LiveRoomInfo) DoTemplateTo(w io.Writer) error {
+	return DoTemplateTo(w, lri)
+}
+
 // [URL_ARTICLE_INFO]
 // "data"
 type ArticleInfo struct {
@@ -490,6 +515,10 @@ func (ai *ArticleInfo) WithCvid(cvid string) *ArticleInfo {
 
 func (ai *ArticleInfo) DoTemplate() string {
 	return DoTemplate(ai)
+}
+
+func (ai *ArticleInfo) DoTemplateTo(w io.Writer) error {
+	return DoTemplateTo(w, ai)
 }
 
 // [URL_SONG_INFO]
@@ -668,6 +697,10 @@ func (s *Song) DoTemplate() string {
 	return DoTemplate(s)
 }
 
+func (s *Song) DoTemplateTo(w io.Writer) error {
+	return DoTemplateTo(w, s)
+}
+
 // [URL_SPACE_CARD]
 // "data"
 type SpaceCard struct {
@@ -714,6 +747,10 @@ type SpaceCard struct {
 
 func (sc *SpaceCard) DoTemplate() string {
 	return DoTemplate(sc)
+}
+
+func (sc *SpaceCard) DoTemplateTo(w io.Writer) error {
+	return DoTemplateTo(w, sc)
 }
 
 // "data"
@@ -847,11 +884,12 @@ func (da *dynamicAddiReserve) DoTemplate() string {
 	return DoTemplate(da)
 }
 
-// 获取投票的详细信息 [VoteInfo] 再填充模板
+func (da *dynamicAddiReserve) DoTemplateTo(w io.Writer) error {
+	return DoTemplateTo(w, da)
+}
+
+// DoTemplate 获取投票的详细信息 [VoteInfo] 再填充模板
 func (dav *dynamicAddiVote) DoTemplate() string {
-	if dav.VoteId == 0 {
-		return "投票ID为0"
-	}
 	vi, err := FetchVoteInfo(itoa(dav.VoteId))
 	if err != nil {
 		return err.Error()
@@ -859,12 +897,29 @@ func (dav *dynamicAddiVote) DoTemplate() string {
 	return vi.DoTemplate()
 }
 
+// DoTemplateTo 获取投票的详细信息 [VoteInfo] 再填充模板
+func (dav *dynamicAddiVote) DoTemplateTo(w io.Writer) error {
+	vi, err := FetchVoteInfo(itoa(dav.VoteId))
+	if err != nil {
+		return err
+	}
+	return vi.DoTemplateTo(w)
+}
+
 func (da *dynamicAddiUgc) DoTemplate() string {
 	return DoTemplate(da)
 }
 
+func (da *dynamicAddiUgc) DoTemplateTo(w io.Writer) error {
+	return DoTemplateTo(w, da)
+}
+
 func (da *dynamicAddiCommon) DoTemplate() string {
 	return DoTemplate(da)
+}
+
+func (da *dynamicAddiCommon) DoTemplateTo(w io.Writer) error {
+	return DoTemplateTo(w, da)
 }
 
 type (
@@ -1013,28 +1068,56 @@ func (dmd *dynamicMajorDraw) DoTemplate() string {
 	return DoTemplate(dmd)
 }
 
+func (dmd *dynamicMajorDraw) DoTemplateTo(w io.Writer) error {
+	return DoTemplateTo(w, dmd)
+}
+
 func (dma *dynamicMajorArchive) DoTemplate() string {
 	return DoTemplate(dma)
+}
+
+func (dma *dynamicMajorArchive) DoTemplateTo(w io.Writer) error {
+	return DoTemplateTo(w, dma)
 }
 
 func (dma *dynamicMajorArticle) DoTemplate() string {
 	return DoTemplate(dma)
 }
 
+func (dma *dynamicMajorArticle) DoTemplateTo(w io.Writer) error {
+	return DoTemplateTo(w, dma)
+}
+
 func (dmm *dynamicMajorMusic) DoTemplate() string {
 	return DoTemplate(dmm)
+}
+
+func (dmm *dynamicMajorMusic) DoTemplateTo(w io.Writer) error {
+	return DoTemplateTo(w, dmm)
 }
 
 func (dml *dynamicMajorLive) DoTemplate() string {
 	return DoTemplate(dml)
 }
 
+func (dml *dynamicMajorLive) DoTemplateTo(w io.Writer) error {
+	return DoTemplateTo(w, dml)
+}
+
 func (dmlr *dynamicMajorLiveRcmd) DoTemplate() string {
 	return DoTemplate(dmlr)
 }
 
+func (dmlr *dynamicMajorLiveRcmd) DoTemplateTo(w io.Writer) error {
+	return DoTemplateTo(w, dmlr)
+}
+
 func (dmp *dynamicMajorPgc) DoTemplate() string {
 	return DoTemplate(dmp)
+}
+
+func (dmp *dynamicMajorPgc) DoTemplateTo(w io.Writer) error {
+	return DoTemplateTo(w, dmp)
 }
 
 // Unmarshal 将 Content 中的 rawJson 反序列化到 Unmarshaled 中
@@ -1298,6 +1381,10 @@ func (dd *DynamicDetail) DoTemplate() string {
 	return DoTemplate(dd)
 }
 
+func (dd *DynamicDetail) DoTemplateTo(w io.Writer) error {
+	return DoTemplateTo(w, dd)
+}
+
 func (dd *DynamicDetail) GetReplyList() (rl ReplyList, err error) {
 	return FetchReplyList(dd.Basic.CommentType, dd.Basic.CommentIdStr)
 }
@@ -1373,6 +1460,10 @@ type VoteInfo struct {
 
 func (vi *VoteInfo) DoTemplate() string {
 	return DoTemplate(vi)
+}
+
+func (vi *VoteInfo) DoTemplateTo(w io.Writer) error {
+	return DoTemplateTo(w, vi)
 }
 
 /*

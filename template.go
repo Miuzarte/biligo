@@ -3,6 +3,7 @@ package biligo
 import (
 	"embed"
 	"fmt"
+	"io"
 	"reflect"
 	"strings"
 	"text/template"
@@ -18,7 +19,7 @@ var typeTemplates embed.FS
 
 var typeTemplate = template.New("biligo")
 
-var loadedTemplates = make(map[string]struct{}) // type name without path
+var loadedTemplates = set[string]{} // type name without path
 
 func init() {
 	typeTemplate.Funcs(template.FuncMap{
@@ -86,7 +87,7 @@ func getEmbeddedTemplate[T any]() string {
 
 		data, err := typeTemplates.ReadFile(typeTemplatesDir + "/" + file.Name())
 		if err != nil {
-			panic(fmt.Errorf("failed to read template file %s: %v", file.Name(), err))
+			panic(fmt.Errorf("failed to read template file %s: %w", file.Name(), err))
 		}
 		if len(data) == 0 {
 			panic(fmt.Errorf("template file %s is empty", file.Name()))
@@ -132,7 +133,7 @@ func SetTemplateFor[T any](conf ...TemplateConfig) (err error) {
 		} else {
 			_, err = typeTemplate.Parse(getEmbeddedTemplate[T]())
 			if err != nil {
-				panic(fmt.Errorf("failed to parse template for type %s: %v", typ, err))
+				panic(fmt.Errorf("failed to parse template for type %s: %w", typ, err))
 			}
 		}
 	} else {
@@ -149,23 +150,30 @@ func SetTemplateFor[T any](conf ...TemplateConfig) (err error) {
 // Templatable 用于明确声明类型支持模板格式化
 type Templatable interface {
 	DoTemplate() string
+	DoTemplateTo(io.Writer) error
 }
 
 // DoTemplate 填充时会根据类型选择模板,
 // 外部类型在使用前需要通过 [SetTemplateFor] 函数自定义模板
 func DoTemplate[T any](v *T) string {
+	sb := strings.Builder{}
+	err := DoTemplateTo(&sb, v)
+	if err != nil {
+		sb.WriteString(err.Error())
+	}
+	return sb.String()
+}
+
+// DoTemplateTo 填充时会根据类型选择模板,
+// 外部类型在使用前需要通过 [SetTemplateFor] 函数自定义模板
+func DoTemplateTo[T any](w io.Writer, v *T) error {
 	if v == nil {
-		return fmt.Sprint(v)
+		return nil
 	}
 	typ, _ := getTypeName[T]()
 	_, ok := loadedTemplates[typ]
 	if !ok {
 		SetTemplateFor[T]()
 	}
-	sb := strings.Builder{}
-	err := typeTemplate.ExecuteTemplate(&sb, typ, v)
-	if err != nil {
-		return err.Error()
-	}
-	return sb.String()
+	return typeTemplate.ExecuteTemplate(w, typ, v)
 }

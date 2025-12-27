@@ -88,7 +88,7 @@ var (
 	// mutex 被持有时表示池中对象正在被使用
 	cidCachePool = sync.Pool{
 		New: func() any {
-			return make(map[string]string)
+			return map[string]string{}
 		},
 	}
 	cidCachePoolMu sync.Mutex
