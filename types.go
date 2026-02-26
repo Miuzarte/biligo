@@ -8,12 +8,12 @@ import (
 )
 
 type (
-	videoDimension struct {
+	VideoDimension struct {
 		Width  int `json:"width" mapstructure:"width"`
 		Height int `json:"height" mapstructure:"height"`
 		Rotate int `json:"rotate" mapstructure:"rotate"`
 	}
-	videoPage struct {
+	VideoPage struct {
 		Cid        int            `json:"cid" mapstructure:"cid"`
 		Page       int            `json:"page" mapstructure:"page"`
 		From       string         `json:"from" mapstructure:"from"` // "vupload"
@@ -21,7 +21,7 @@ type (
 		Duration   int            `json:"duration" mapstructure:"duration"` // (s)
 		Vid        string         `json:"vid" mapstructure:"vid"`           // ""
 		Weblink    string         `json:"weblink" mapstructure:"weblink"`   // ""
-		Dimension  videoDimension `json:"dimension" mapstructure:"dimension"`
+		Dimension  VideoDimension `json:"dimension" mapstructure:"dimension"`
 		FirstFrame string         `json:"first_frame" mapstructure:"first_frame"`
 		CTime      int            `json:"ctime" mapstructure:"ctime"` // 投稿时间
 	}
@@ -72,7 +72,7 @@ type VideoInfo struct {
 
 	Dynamic   string         `json:"dynamic" mapstructure:"dynamic"`     // 视频同步发布的的动态的文字内容
 	Cid       int            `json:"cid" mapstructure:"cid"`             // P1的 cid
-	Dimension videoDimension `json:"dimension" mapstructure:"dimension"` // P1的分辨率
+	Dimension VideoDimension `json:"dimension" mapstructure:"dimension"` // P1的分辨率
 
 	IsChargeableSeason      bool `json:"is_chargeable_season" mapstructure:"is_chargeable_season"`
 	IsStory                 bool `json:"is_story" mapstructure:"is_story"`
@@ -82,7 +82,7 @@ type VideoInfo struct {
 	IsUpowerExclusiveWithQa bool `json:"is_upower_exclusive_with_qa" mapstructure:"is_upower_exclusive_with_qa"`
 	NoCache                 bool `json:"no_cache" mapstructure:"no_cache"` // 是否禁止缓存
 
-	Pages []videoPage `json:"pages" mapstructure:"pages"` // 分P信息
+	Pages []VideoPage `json:"pages" mapstructure:"pages"` // 分P信息
 
 	Online VideoOnline `json:"-" mapstructure:"-"` // 在线人数, 仅用于格式化
 }
@@ -223,7 +223,7 @@ func (mb *MediaBase) DoTemplateTo(w io.Writer) error {
 }
 
 // incomplete
-type mediaEpisode struct {
+type MediaEpisode struct {
 	Aid       int    `json:"aid" mapstructure:"aid"`
 	Cid       int    `json:"cid" mapstructure:"cid"`
 	Cover     string `json:"cover" mapstructure:"cover"`
@@ -247,7 +247,7 @@ type Media struct {
 	BkgCover string `json:"bkg_cover" mapstructure:"bkg_cover"`
 	Cover    string `json:"cover" mapstructure:"cover"`
 
-	Episodes []mediaEpisode `json:"episodes" mapstructure:"episodes"`
+	Episodes []MediaEpisode `json:"episodes" mapstructure:"episodes"`
 
 	Evaluate string `json:"evaluate" mapstructure:"evaluate"` // 简介
 	JpTitle  string `json:"jp_title" mapstructure:"jp_title"`
@@ -321,8 +321,8 @@ func (m *Media) DoTemplateTo(w io.Writer) error {
 	return DoTemplateTo(w, m)
 }
 
-type mediaSection struct {
-	Episodes []mediaEpisode `json:"episodes" mapstructure:"episodes"`
+type Section struct {
+	Episodes []MediaEpisode `json:"episodes" mapstructure:"episodes"`
 	Id       int            `json:"id" mapstructure:"id"`
 	Title    string         `json:"title" mapstructure:"title"` // "正片" / "预告" / "PV"
 	Type     int            `json:"type" mapstructure:"type"`   // 对应 Title
@@ -331,8 +331,8 @@ type mediaSection struct {
 // [URL_MEDIA_SECTION]
 // "result"
 type MediaSection struct {
-	MainSection mediaSection   `json:"main_section" mapstructure:"main_section"`
-	Section     []mediaSection `json:"section" mapstructure:"section"`
+	MainSection Section   `json:"main_section" mapstructure:"main_section"`
+	Section     []Section `json:"section" mapstructure:"section"`
 }
 
 // "data"
@@ -777,7 +777,7 @@ type DynamicAllUpdate struct {
 }
 
 // "basic"
-type dynamicBasic struct {
+type DynamicBasic struct {
 	CommentIdStr string `json:"comment_id_str" mapstructure:"comment_id_str"`
 	CommentType  int    `json:"comment_type" mapstructure:"comment_type"`
 	IsOnlyFans   bool   `json:"is_only_fans" mapstructure:"is_only_fans"`
@@ -1348,7 +1348,7 @@ type DynamicSpace struct {
 
 // "data.item" / "data.item.orig"
 type DynamicDetail struct {
-	Basic dynamicBasic `json:"basic" mapstructure:"basic"`
+	Basic DynamicBasic `json:"basic" mapstructure:"basic"`
 	IdStr string       `json:"id_str" mapstructure:"id_str"` // 动态 id
 
 	Modules struct {
@@ -1431,7 +1431,7 @@ type DynamicDetailDesktopItem struct {
 	Visible bool `json:"visible" mapstructure:"visible"`
 }
 
-type voteOption struct {
+type VoteOption struct {
 	OptIdx  int    `json:"opt_idx" mapstructure:"opt_idx"`   // 选项索引
 	OptDesc string `json:"opt_desc" mapstructure:"opt_desc"` // 选项描述
 	ImgUrl  string `json:"img_url" mapstructure:"img_url"`   // 选项图片url
@@ -1451,7 +1451,7 @@ type VoteInfo struct {
 	VotePublisher int          `json:"vote_publisher" mapstructure:"vote_publisher"` // 投票发起者uid
 	DefaultShare  int          `json:"default_share" mapstructure:"default_share"`
 	CTime         int          `json:"ctime" mapstructure:"ctime"` // 创建时间 (s)
-	Options       []voteOption `json:"options" mapstructure:"options"`
+	Options       []VoteOption `json:"options" mapstructure:"options"`
 	OptionsCnt    int          `json:"options_cnt" mapstructure:"options_cnt"` // 选项数
 	VoteLevel     int          `json:"vote_level" mapstructure:"vote_level"`   // 投票发起者账号等级
 	Face          string       `json:"face" mapstructure:"face"`               // 投票发起者头像url
@@ -1470,14 +1470,14 @@ func (vi *VoteInfo) DoTemplateTo(w io.Writer) error {
 unders are without any template
 */
 
-type searchPageInfo struct {
+type SearchPageInfo struct {
 	Total int `json:"total" mapstructure:"total"`
 	// NumResults int `json:"numResults" mapstructure:"numResults"` // == total
 	Pages int `json:"pages" mapstructure:"pages"`
 	// NumPages int `json:"numPages" mapstructure:"numPages"` // == pages
 }
 
-type searchBase struct {
+type SearchBase struct {
 	Seid           string `json:"seid" mapstructure:"seid"`
 	Page           int    `json:"page" mapstructure:"page"`
 	Pagesize       int    `json:"pagesize" mapstructure:"pagesize"`
@@ -1495,10 +1495,10 @@ type searchBase struct {
 
 // "data"
 type SearchAll struct {
-	searchBase
+	SearchBase
 
 	// "video", "bangumi", ...
-	PageInfo map[string]searchPageInfo `json:"page_info" mapstructure:"page_info"`
+	PageInfo map[string]SearchPageInfo `json:"page_info" mapstructure:"page_info"`
 	Result   []struct {
 		ResultType string           `json:"result_type" mapstructure:"result_type"`
 		Data       []map[string]any `json:"data" mapstructure:"data"`
@@ -1507,16 +1507,16 @@ type SearchAll struct {
 
 // "data"
 type SearchType struct {
-	searchBase
+	SearchBase
 	Result []map[string]any `json:"result" mapstructure:"result"`
 }
 
 // "data"
 type SearchTypeLive struct {
-	searchBase
+	SearchBase
 	Pageinfo struct {
-		LiveUser searchPageInfo `json:"live_user" mapstructure:"live_user"`
-		LiveRoom searchPageInfo `json:"live_room" mapstructure:"live_room"`
+		LiveUser SearchPageInfo `json:"live_user" mapstructure:"live_user"`
+		LiveRoom SearchPageInfo `json:"live_room" mapstructure:"live_room"`
 	} `json:"pageinfo" mapstructure:"pageinfo"`
 	Result struct {
 		LiveUser map[string]any `json:"live_user" mapstructure:"live_user"`
@@ -1524,7 +1524,7 @@ type SearchTypeLive struct {
 	} `json:"result" mapstructure:"result"`
 }
 
-type videoPlayurlDurl []struct {
+type VideoPlayurlDurl struct {
 	Order     int      `json:"order" mapstructure:"order"`
 	Length    int      `json:"length" mapstructure:"length"`
 	Size      int      `json:"size" mapstructure:"size"`
@@ -1534,7 +1534,7 @@ type videoPlayurlDurl []struct {
 	BackupUrl []string `json:"backup_url" mapstructure:"backup_url"`
 }
 
-type videoPlayurlDashInfo struct {
+type VideoPlayurlDashInfo struct {
 	Id        int      `json:"id" mapstructure:"id"` // 80
 	BaseUrl   string   `json:"base_url" mapstructure:"base_url"`
 	BackupUrl []string `json:"backup_url" mapstructure:"backup_url"`
@@ -1564,12 +1564,12 @@ type videoPlayurlDashInfo struct {
 	Codecid int `json:"codecid" mapstructure:"codecid"` // 7
 }
 
-type videoPlayurlDash struct {
+type DideoPlayurlDash struct {
 	Duration      int     `json:"duration" mapstructure:"duration"`
 	MinBufferTime float64 `json:"min_buffer_time" mapstructure:"min_buffer_time"`
 
-	Video []videoPlayurlDashInfo `json:"video" mapstructure:"video"`
-	Audio []videoPlayurlDashInfo `json:"audio" mapstructure:"audio"`
+	Video []VideoPlayurlDashInfo `json:"video" mapstructure:"video"`
+	Audio []VideoPlayurlDashInfo `json:"audio" mapstructure:"audio"`
 
 	Dolby struct {
 		Type int `json:"type" mapstructure:"type"`
@@ -1579,7 +1579,7 @@ type videoPlayurlDash struct {
 	// Flac *struct{} `json:"flac" mapstructure:"flac"` // "flac" : {}
 }
 
-type videoPlayurlSupportFormat struct {
+type VideoPlayurlSupportFormat struct {
 	Quality        int      `json:"quality" mapstructure:"quality"`                 // 80
 	Format         string   `json:"format" mapstructure:"format"`                   // "mp4"
 	NewDescription string   `json:"new_description" mapstructure:"new_description"` // "高清 720P"
@@ -1603,11 +1603,11 @@ type VideoPlayurl struct {
 	SeekParam         string   `json:"seek_param" mapstructure:"seek_param"`                 // "v"
 	SeekType          string   `json:"seek_type" mapstructure:"seek_type"`                   // "play"
 
-	Durl videoPlayurlDurl `json:"durl" mapstructure:"durl"` // mp4 流地址
+	Durl []VideoPlayurlDurl `json:"durl" mapstructure:"durl"` // mp4 流地址
 
-	Dash *videoPlayurlDash `json:"dash" mapstructure:"dash"`
+	Dash *DideoPlayurlDash `json:"dash" mapstructure:"dash"`
 
-	SupportFormats []videoPlayurlSupportFormat `json:"support_formats" mapstructure:"support_formats"` // "support_formats" : {}
+	SupportFormats []VideoPlayurlSupportFormat `json:"support_formats" mapstructure:"support_formats"` // "support_formats" : {}
 
 	// HighFormat *struct{} `json:"high_format" mapstructure:"high_format"`
 	LastPlayTime int `json:"last_play_time" mapstructure:"last_play_time"` // (s)

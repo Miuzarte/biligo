@@ -248,11 +248,27 @@ const (
 type VideoCodec = string
 
 const (
-	VIDEO_CODEC_AV1  VideoCodec = "av01.0.00M.10.0.110.01.01.01.0"
-	VIDEO_CODEC_AVC  VideoCodec = "avc1.640034"
+	// [VIDEO_QN_4K] "avc1.640034"
+	// [VIDEO_QN_1080] [VIDEO_QN_1080PLUS] [VIDEO_QN_1080P60] "avc1.640032"
+	// [VIDEO_QN_720] "avc1.640028"
+	// [VIDEO_QN_480] "avc1.64001F"
+	// [VIDEO_QN_360] "avc1.64001E"
+	VIDEO_CODEC_AVC  VideoCodec = "avc1.6400**"
 	VIDEO_CODEC_HEVC VideoCodec = "hev1.1.6.L153.90"
+	VIDEO_CODEC_AV1  VideoCodec = "av01.0.00M.10.0.110.01.01.01.0"
+)
+
+type VideoCodecId = int
+
+const (
+	VIDEO_CODEC_ID_AVC  VideoCodecId = 7  // H.264
+	VIDEO_CODEC_ID_HEVC VideoCodecId = 12 // H.265
+	VIDEO_CODEC_ID_AV1  VideoCodecId = 13 // AV1
 )
 
 const (
-	AUDIO_CODEC_M4A VideoCodec = "mp4a.40.2"
+	// 30232 "mp4a.40.2"
+	// 39489 "mp4a.40.5"
+	// 30280 "mp4a.40.2"
+	AUDIO_CODEC_M4A VideoCodec = "mp4a.40.*"
 )
