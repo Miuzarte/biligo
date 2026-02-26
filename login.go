@@ -1,6 +1,7 @@
 package biligo
 
 import (
+	"context"
 	"iter"
 	"net/url"
 	"strconv"
@@ -8,7 +9,7 @@ import (
 	"time"
 )
 
-func Login() (qrcodeUrl string, it iter.Seq2[LoginCodeState, error], err error) {
+func Login(ctx context.Context) (qrcodeUrl string, it iter.Seq2[LoginCodeState, error], err error) {
 	qg, err := FetchLoginQrcodeGenerate()
 	if err != nil {
 		return "", nil, err
@@ -20,13 +21,19 @@ func Login() (qrcodeUrl string, it iter.Seq2[LoginCodeState, error], err error) 
 		return "", nil, wrapErr(ErrLoginEmptyQrcodeKey, qg)
 	}
 
-	return qg.Url, loginIter(qg.QrcodeKey), nil
+	return qg.Url, loginIter(ctx, qg.QrcodeKey), nil
 }
 
-func loginIter(qrcodeKey string) iter.Seq2[LoginCodeState, error] {
+func loginIter(ctx context.Context, qrcodeKey string) iter.Seq2[LoginCodeState, error] {
 	return func(yield func(LoginCodeState, error) bool) {
 		for {
-			time.Sleep(time.Second)
+			select {
+			case <-ctx.Done():
+				yield(-1, ctx.Err())
+				return
+			case <-time.After(time.Second):
+			}
+
 			qp, header, err := FetchLoginQrcodePoll(qrcodeKey)
 			if err != nil {
 				if yield(-1, err) {
