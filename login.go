@@ -83,8 +83,8 @@ func loginIter(ctx context.Context, qrcodeKey string) iter.Seq2[LoginCodeState, 
 			case LOGIN_CODE_STATE_EXPIRED:
 				err = wrapErr(ErrLoginQrcodeExpired, nil)
 
-			case LOGIN_CODE_STATE_SCANED:
-			case LOGIN_CODE_STATE_UNSCANED:
+			case LOGIN_CODE_STATE_SCANNED:
+			case LOGIN_CODE_STATE_UNSCANNED:
 
 			default:
 				err = wrapErr(ErrLoginUnknownCode, qp)

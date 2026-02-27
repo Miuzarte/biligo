@@ -142,10 +142,10 @@ var (
 type LoginCodeState int
 
 const (
-	LOGIN_CODE_STATE_SUCCESS  LoginCodeState = 0     // 扫码登录成功
-	LOGIN_CODE_STATE_EXPIRED  LoginCodeState = 86038 // 二维码已失效
-	LOGIN_CODE_STATE_SCANED   LoginCodeState = 86090 // 二维码已扫码未确认
-	LOGIN_CODE_STATE_UNSCANED LoginCodeState = 86101 // 未扫码
+	LOGIN_CODE_STATE_SUCCESS   LoginCodeState = 0     // 扫码登录成功
+	LOGIN_CODE_STATE_EXPIRED   LoginCodeState = 86038 // 二维码已失效
+	LOGIN_CODE_STATE_SCANNED   LoginCodeState = 86090 // 二维码已扫码未确认
+	LOGIN_CODE_STATE_UNSCANNED LoginCodeState = 86101 // 未扫码
 )
 
 func (lcs LoginCodeState) String() string {
@@ -154,9 +154,9 @@ func (lcs LoginCodeState) String() string {
 		return "success"
 	case LOGIN_CODE_STATE_EXPIRED:
 		return "expired"
-	case LOGIN_CODE_STATE_SCANED:
+	case LOGIN_CODE_STATE_SCANNED:
 		return "scaned"
-	case LOGIN_CODE_STATE_UNSCANED:
+	case LOGIN_CODE_STATE_UNSCANNED:
 		return "unscaned"
 	default:
 		return "unknown"
